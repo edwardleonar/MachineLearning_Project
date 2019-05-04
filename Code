@@ -28,6 +28,49 @@ d_filtered <- filter(d, loan_status != "Current") #Filter out all observations w
 
 d_filtered$loan_status[d_filtered$loan_status != "Fully Paid"] <- "DEFAULTED" #Change value of loan_status to "DEFAULTED", if not "Fully Paid"
 
+
+
+########         Data Preparation          #################################################################
+
+#Before splitting the data, let's prepare the the variables. E.g.: some information like dates, or numeric are in character format:
+#write.csv(d_filtered, "df_subset.csv")
+df_prepa <- read_csv("df_subset.csv")
+str(df_prepa)
+
+# Transform terms into numeric
+df_prepa$term <- substr(df_prepa$term, 1,2) #extract numbers from terms 
+df_prepa$term <- as.numeric(df_prepa$term1)
+
+# Set financial grades as factors, and give them an order -> Grade A is better than G
+df_prepa$grade <- ordered(df_prepa$grade, levels= c("G", "F", "E", "D", "C", "B", "A"))
+
+# Set financial grades as factors in sub_grades
+df_prepa$sub_grade <- ordered(df_prepa$sub_grade, levels= c("G5", "G4","G3","G2","G1",
+                                                             "F5", "F4","F3","F2","F1",
+                                                             "E5", "E4","E3","E2","E1",
+                                                             "D5", "D4","D3","D2","D1",
+                                                             "C5", "C4","C3","C2","C1",
+                                                             "B5", "B4","B3","B2","B1",
+                                                             "A5", "A4","A3","A2","A1"))
+
+#Transforming years of employment as numeric
+df_prepa$emp_length <- gsub("[^0-9.]", "",  df_prepa$emp_length)
+df_prepa$emp_length <- as.numeric(df_prepa$emp_length)
+
+#Transforming verification status as factors, and giving them an order. 
+   #"Source Verified" has a higher level than "not verified"
+df_prepa$verification_status <- ordered(df_prepa$verification_status,
+                                        levels= c("Not Verified", "Verified", "Source Verified"))
+
+#Transforming dates into Date format.
+df_prepa$issue_d2 <- as.Date(df_prepa$issue_d, format = "%b-%y") #code doesn't work :( 
+
+
+
+
+
+
+
 #Create a validation set: split the data into training and test set#################################################################################
 
 set.seed(123) #for reproducibility
