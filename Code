@@ -1,0 +1,42 @@
+rm(list=ls())
+#Libraries
+library(tidyverse)
+library(dplyr)
+library(caret)
+library(pls)
+#read the data and make our subset########################################################################
+
+setwd("C:/Users/jonas/Dropbox/Dokumente/HSLU/FS 19/Applied Machine Learning/Project/lending-club-loan-data")
+
+data <- read_csv("loan.csv", n_max = Inf, guess_max = 100000, skip_empty_rows= TRUE, locale = locale(asciify = TRUE))
+
+data <- data %>% select (-id,-member_id)
+
+head(data)
+
+data2 <- as_tibble(cbind(id=as.numeric(rownames(data)), data.frame(data, row.names= NULL)))
+
+head(data2)
+
+t <- 8
+
+d <- data2[which(data2$id%%8+1== t),]
+
+#Get an overview and filter the data (preparatory task##################################################)
+
+d_filtered <- filter(d, loan_status != "Current") #Filter out all observations with loan_status CURRENT
+
+d_filtered$loan_status[d_filtered$loan_status != "Fully Paid"] <- "DEFAULTED" #Change value of loan_status to "DEFAULTED", if not "Fully Paid"
+
+#Create a validation set: split the data into training and test set#################################################################################
+
+set.seed(123) #for reproducibility
+
+training.samples <- d_filtered$loan_status %>% #80% of the data as training samples, use of package caret
+  createDataPartition(p = 0.8, list = F)
+
+train.d <- d_filtered[training.samples, ] #subsetting the train dataset 
+test.d <- d_filtered[-training.samples, ] #subsetting the test dataset
+
+str(train.d)
+str(test.d)
